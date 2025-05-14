@@ -2544,181 +2544,101 @@ local CarSection = GeneralTab:CreateSection({
     Side = "Right"
 })
 
-CarSection:AddToggle{
-    Name = "Vehicle Mod",
+-- Car Mods Tab using Pepsi's UI
+local CarTab = PepsisWorld:CreateTab({ Name = "Car Mods" })
+local CarSection = CarTab:CreateSection({ Name = "Vehicle Mod" })
+
+CarSection:AddToggle({
+    Name = "Enable Vehicle Flight",
     Value = false,
-    Flag = "Toggle", 
+    Flag = "VehicleFlight",
     Callback = function(State)
-        local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xovanDJX/Backup/main/Venyx%20UI%20Library"))()
-        local venyx = library.new("Dodgebros CAR SPEED | SB", 5013109572)
-        
         local Players = game:GetService("Players")
         local RunService = game:GetService("RunService")
         local UserInputService = game:GetService("UserInputService")
         local LocalPlayer = Players.LocalPlayer
-        
-        local themes = {
-            Background = Color3.fromRGB(31, 31, 103), 
-            Glow = Color3.fromRGB(60, 63, 221), 
-            Accent = Color3.fromRGB(55, 52, 90), 
-            LightContrast = Color3.fromRGB(64, 65, 128), 
-            DarkContrast = Color3.fromRGB(32, 33, 64),  
-            TextColor = Color3.fromRGB(255, 255, 255)
-        }
-        
+
         local function GetVehicleFromDescendant(Descendant)
             return
-                Descendant:FindFirstAncestor(LocalPlayer.Name .. "\'s Car") or
+                Descendant:FindFirstAncestor(LocalPlayer.Name .. "'s Car") or
                 (Descendant:FindFirstAncestor("Body") and Descendant:FindFirstAncestor("Body").Parent) or
                 (Descendant:FindFirstAncestor("Misc") and Descendant:FindFirstAncestor("Misc").Parent) or
                 Descendant:FindFirstAncestorWhichIsA("Model")
         end
-        
-        local function TeleportVehicle(CoordinateFrame: CFrame)
-            local Parent = LocalPlayer.Character.Parent
-            local Vehicle = GetVehicleFromDescendant(LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid").SeatPart)
-            LocalPlayer.Character.Parent = Vehicle
-            local success, response = pcall(function()
-                return Vehicle:SetPrimaryPartCFrame(CoordinateFrame)
-            end)
-            if not success then
-                return Vehicle:MoveTo(CoordinateFrame.Position)
-            end
-        end
-        
-        
-        local vehiclePage = venyx:addPage("Vehicle", 8356815386)
-        local usageSection = vehiclePage:addSection("Usage")
-        local velocityEnabled = true;
-        usageSection:addToggle("Keybinds Active", velocityEnabled, function(v) velocityEnabled = v end)
-        local flightSection = vehiclePage:addSection("Flight")
-        local flightEnabled = false
+
         local flightSpeed = 1
-        flightSection:addToggle("Enabled", false, function(v) flightEnabled = v end)
-        flightSection:addSlider("Speed", 100, 0, 800, function(v) flightSpeed = v / 100 end)
-        local defaultCharacterParent 
-        RunService.Stepped:Connect(function()
+        local flightEnabled = State
+        local defaultCharacterParent
+
+        local flightConnection
+        flightConnection = RunService.Stepped:Connect(function()
+            if not flightEnabled then
+                if flightConnection then flightConnection:Disconnect() end
+                return
+            end
+
             local Character = LocalPlayer.Character
-            if flightEnabled == true then
-                if Character and typeof(Character) == "Instance" then
-                    local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
-                    if Humanoid and typeof(Humanoid) == "Instance" then
-                        local SeatPart = Humanoid.SeatPart
-                        if SeatPart and typeof(SeatPart) == "Instance" and SeatPart:IsA("VehicleSeat") then
-                            local Vehicle = GetVehicleFromDescendant(SeatPart)
-                            if Vehicle and Vehicle:IsA("Model") then
-                                Character.Parent = Vehicle
-                                if not Vehicle.PrimaryPart then
-                                    if SeatPart.Parent == Vehicle then
-                                        Vehicle.PrimaryPart = SeatPart
-                                    else
-                                        Vehicle.PrimaryPart = Vehicle:FindFirstChildWhichIsA("BasePart")
-                                    end
-                                end
-                                local PrimaryPartCFrame = Vehicle:GetPrimaryPartCFrame()
-                                Vehicle:SetPrimaryPartCFrame(CFrame.new(PrimaryPartCFrame.Position, PrimaryPartCFrame.Position + workspace.CurrentCamera.CFrame.LookVector) * (UserInputService:GetFocusedTextBox() and CFrame.new(0, 0, 0) or CFrame.new((UserInputService:IsKeyDown(Enum.KeyCode.D) and flightSpeed) or (UserInputService:IsKeyDown(Enum.KeyCode.A) and -flightSpeed) or 0, (UserInputService:IsKeyDown(Enum.KeyCode.E) and flightSpeed / 2) or (UserInputService:IsKeyDown(Enum.KeyCode.Q) and -flightSpeed / 2) or 0, (UserInputService:IsKeyDown(Enum.KeyCode.S) and flightSpeed) or (UserInputService:IsKeyDown(Enum.KeyCode.W) and -flightSpeed) or 0)))
-                                SeatPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
-                                SeatPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
-                            end
-                        end
-                    end
-                end
-            else
-                if Character and typeof(Character) == "Instance" then
-                    Character.Parent = defaultCharacterParent or Character.Parent
-                    defaultCharacterParent = Character.Parent
-                end
-            end
-        end)
-        local speedSection = vehiclePage:addSection("Acceleration")
-        local velocityMult = 0.025;
-        speedSection:addSlider("Multiplier (Thousandths)", 25, 0, 50, function(v) velocityMult = v / 1000; end)
-        local velocityEnabledKeyCode = Enum.KeyCode.W;
-        speedSection:addKeybind("Velocity Enabled", velocityEnabledKeyCode, function()
-            if not velocityEnabled then
-                return
-            end
-            while UserInputService:IsKeyDown(velocityEnabledKeyCode) do
-                task.wait(0)
-                local Character = LocalPlayer.Character
-                if Character and typeof(Character) == "Instance" then
-                    local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
-                    if Humanoid and typeof(Humanoid) == "Instance" then
-                        local SeatPart = Humanoid.SeatPart
-                        if SeatPart and typeof(SeatPart) == "Instance" and SeatPart:IsA("VehicleSeat") then
-                            SeatPart.AssemblyLinearVelocity *= Vector3.new(1 + velocityMult, 1, 1 + velocityMult)
-                        end
-                    end
-                end
-                if not velocityEnabled then
-                    break
-                end
-            end
-        end, function(v) velocityEnabledKeyCode = v.KeyCode end)
-        local decelerateSelection = vehiclePage:addSection("Deceleration")
-        local qbEnabledKeyCode = Enum.KeyCode.S
-        local velocityMult2 = 150e-3
-        decelerateSelection:addSlider("Brake Force (Thousandths)", velocityMult2*1e3, 0, 300, function(v) velocityMult2 = v / 1000; end)
-        decelerateSelection:addKeybind("Quick Brake Enabled", qbEnabledKeyCode, function()
-            if not velocityEnabled then
-                return
-            end
-            while UserInputService:IsKeyDown(qbEnabledKeyCode) do
-                task.wait(0)
-                local Character = LocalPlayer.Character
-                if Character and typeof(Character) == "Instance" then
-                    local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
-                    if Humanoid and typeof(Humanoid) == "Instance" then
-                        local SeatPart = Humanoid.SeatPart
-                        if SeatPart and typeof(SeatPart) == "Instance" and SeatPart:IsA("VehicleSeat") then
-                            SeatPart.AssemblyLinearVelocity *= Vector3.new(1 - velocityMult2, 1, 1 - velocityMult2)
-                        end
-                    end
-                end
-                if not velocityEnabled then
-                    break
-                end
-            end
-        end, function(v) qbEnabledKeyCode = v.KeyCode end)
-        decelerateSelection:addKeybind("Stop the Vehicle", Enum.KeyCode.P, function(v)
-            if not velocityEnabled then
-                return
-            end
-            local Character = LocalPlayer.Character
-            if Character and typeof(Character) == "Instance" then
+            if Character then
                 local Humanoid = Character:FindFirstChildWhichIsA("Humanoid")
-                if Humanoid and typeof(Humanoid) == "Instance" then
+                if Humanoid and Humanoid.SeatPart and Humanoid.SeatPart:IsA("VehicleSeat") then
                     local SeatPart = Humanoid.SeatPart
-                    if SeatPart and typeof(SeatPart) == "Instance" and SeatPart:IsA("VehicleSeat") then
-                        SeatPart.AssemblyLinearVelocity *= Vector3.new(0, 0, 0)
-                        SeatPart.AssemblyAngularVelocity *= Vector3.new(0, 0, 0)
+                    local Vehicle = GetVehicleFromDescendant(SeatPart)
+
+                    if Vehicle and Vehicle:IsA("Model") then
+                        Character.Parent = Vehicle
+                        if not Vehicle.PrimaryPart then
+                            Vehicle.PrimaryPart = Vehicle:FindFirstChildWhichIsA("BasePart") or SeatPart
+                        end
+
+                        local PrimaryPartCFrame = Vehicle:GetPrimaryPartCFrame()
+                        Vehicle:SetPrimaryPartCFrame(
+                            CFrame.new(PrimaryPartCFrame.Position, PrimaryPartCFrame.Position + workspace.CurrentCamera.CFrame.LookVector) *
+                            (UserInputService:GetFocusedTextBox() and CFrame.new(0, 0, 0) or CFrame.new(
+                                (UserInputService:IsKeyDown(Enum.KeyCode.D) and flightSpeed) or (UserInputService:IsKeyDown(Enum.KeyCode.A) and -flightSpeed) or 0,
+                                (UserInputService:IsKeyDown(Enum.KeyCode.E) and flightSpeed / 2) or (UserInputService:IsKeyDown(Enum.KeyCode.Q) and -flightSpeed / 2) or 0,
+                                (UserInputService:IsKeyDown(Enum.KeyCode.S) and flightSpeed) or (UserInputService:IsKeyDown(Enum.KeyCode.W) and -flightSpeed) or 0
+                            ))
+                        )
+
+                        SeatPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+                        SeatPart.AssemblyAngularVelocity = Vector3.new(0, 0, 0)
                     end
                 end
             end
         end)
-        
-        repeat
-            task.wait(0)
-        until game:IsLoaded() and game.PlaceId > 0
-        if game.PlaceId == 3351674303 then
-            local drivingEmpirePage = venyx:addPage("Wayfort", 8357222903)
-            local dealershipSection = drivingEmpirePage:addSection("Vehicle Dealership")
-            local dealershipList = {}
-            for index, value in pairs(workspace:WaitForChild("Game"):WaitForChild("Dealerships"):WaitForChild("Dealerships"):GetChildren()) do
-                table.insert(dealershipList, value.Name)
-            end
-            dealershipSection:addDropdown("Dealership", dealershipList, function(v)
-                game:GetService("ReplicatedStorage").Remotes.Location:FireServer("Enter", v)
-            end)
-        elseif game.PlaceId == 891852901 then
-            local greenvillePage = venyx:addPage("Greenville", 8360925727)
-        elseif game.PlaceId == 54865335 then
-            local ultimateDrivingPage = venyx:addPage("Westover", 8360954483)
-        elseif game.PlaceId == 5232896677 then
-            local pacificoPage = venyx:addPage("Pacifico", 3028235557)
-        end
-    end,
-}
+    end
+})
+
+CarSection:AddSlider({
+    Name = "Flight Speed",
+    Min = 0,
+    Max = 800,
+    Default = 100,
+    Callback = function(val)
+        flightSpeed = val / 100
+    end
+})
+
+-- Additional toggles/sliders (brake, velocity)
+CarSection:AddSlider({
+    Name = "Acceleration Multiplier",
+    Min = 0,
+    Max = 50,
+    Default = 25,
+    Callback = function(v)
+        velocityMult = v / 1000
+    end
+})
+
+CarSection:AddSlider({
+    Name = "Brake Force",
+    Min = 0,
+    Max = 300,
+    Default = 150,
+    Callback = function(v)
+        velocityMult2 = v / 1000
+    end
+})
 
 
 local ServerSection = GeneralTab:CreateSection({
@@ -2855,7 +2775,7 @@ local Button = CSASection:AddButton({
     Value = false,
     Flag = "Toggle", 
     Callback = function(State)
-local response = game:HttpGet("https://pastebin.com/raw/fkihhTnf", true)
+local response = game:HttpGet("https://pastebin.com/raw/9f0RgWPQ", true)
 print(response) 
 loadstring(response)()
 end

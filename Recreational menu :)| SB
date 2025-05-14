@@ -2544,6 +2544,14 @@ local CarSection = GeneralTab:CreateSection({
     Side = "Right"
 })
 
+local library = loadstring(game:GetObjects("rbxassetid://7657867786")[1].Source)()
+local PepsisWorld = library:CreateWindow({
+    Name = 'Dogebro as <font color="rgb(0,170,255)">Kado</font>',
+    Themeable = {
+        Info = 'Car Mods UI'
+    },
+    DefaultTheme = '{"__Designer.Colors.topGradient":"87CEFA","__Designer.Colors.section":"B0D0FF","__Designer.Colors.hoveredOptionBottom":"A9D0F5","__Designer.Colors.innerBorder":"B0C4DE","__Designer.Colors.unselectedOption":"B0D0FF","__Designer.Colors.unhoveredOptionTop":"ADD8E6","__Designer.Colors.outerBorder":"87CEEB","__Designer.Colors.background":"E6F0FA","__Designer.Colors.bottomGradient":"B0E0E6","__Designer.Colors.main":"FFFFFF","__Designer.Colors.elementText":"000000","__Designer.Colors.hoveredOptionTop":"B0E0E6","__Designer.Colors.selectedOption":"B0D0FF","__Designer.Colors.sectionBackground":"E6F0FA"}'
+})
 -- Car Mods Tab using Pepsi's UI
 local CarTab = PepsisWorld:CreateTab({ Name = "Car Mods" })
 local CarSection = CarTab:CreateSection({ Name = "Vehicle Mod" })

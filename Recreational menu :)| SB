@@ -107,7 +107,7 @@ MainSection:AddToggle{
 
 MainSection:AddToggle{
     Name = '| Stretch Res',
-    Value = true,
+    Value = false,
     Flag = 'stretchres',
     Locked = false,
     Callback = function(state)

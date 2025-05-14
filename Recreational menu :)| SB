@@ -195,6 +195,82 @@ local SpeedSlider = MainSection:AddSlider({
         end
     end
 })
+MainSection:AddButton({
+    Name = '| Infinite Stamina',
+    Callback = function()
+        local Players = game:GetService("Players")
+        local RunService = game:GetService("RunService")
+        local LocalPlayer = Players.LocalPlayer
+
+        local Main = nil
+        pcall(function()
+            Main = require(LocalPlayer.PlayerScripts:WaitForChild("Main"))
+        end)
+
+        if not Main then
+            for _, obj in pairs(getgc(true)) do
+                if type(obj) == "table" and type(rawget(obj, "Stamina")) == "number" then
+                    Main = obj
+                    print("Found Main module via getgc")
+                    break
+                end
+            end
+        end
+
+        if Main then
+            Main.Stamina = 100
+            RunService.Heartbeat:Connect(function()
+                Main.Stamina = 100
+            end)
+            print("Hooked Main.Stamina to be full")
+        else
+            warn("Main module not found; cannot hook Stamina directly.")
+        end
+
+        LocalPlayer:SetAttribute("StaminaConsumeMultiplier", 0)
+        LocalPlayer:GetAttributeChangedSignal("StaminaConsumeMultiplier"):Connect(function()
+            if LocalPlayer:GetAttribute("StaminaConsumeMultiplier") ~= 0 then
+                LocalPlayer:SetAttribute("StaminaConsumeMultiplier", 0)
+            end
+        end)
+        print("Forced StaminaConsumeMultiplier to 0.")
+
+        local SprintHandler = nil
+        for _, obj in pairs(getgc(true)) do
+            if type(obj) == "table" and 
+                type(rawget(obj, "sprintRequest")) == "function" and 
+                type(rawget(obj, "onHeartbeatUpdate")) == "function" then
+                SprintHandler = obj
+                print("Found SprintHandler module via getgc")
+                break
+            end
+        end
+
+        if SprintHandler and type(SprintHandler.onHeartbeatUpdate) == "function" then
+            local originalHeartbeat = SprintHandler.onHeartbeatUpdate
+            SprintHandler.onHeartbeatUpdate = function(...)
+                local res = { originalHeartbeat(...) }
+                if Main then Main.Stamina = 100 end
+                return unpack(res)
+            end
+            print("Hooked SprintHandler.onHeartbeatUpdate.")
+        end
+
+        local success, MainUI = pcall(function() 
+            return LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Main") 
+        end)
+        if success and MainUI then
+            local Bars = MainUI:FindFirstChild("Bars")
+            if Bars then
+                local StaminaBar = Bars:FindFirstChild("StaminaBar")
+                if StaminaBar then
+                    print("Hiding stamina bar")
+                    StaminaBar.Visible = false
+                end
+            end
+        end
+    end
+})
 
 local FOVSlider = MainSection:AddSlider({
     Name = 'Adjust FOV',
@@ -2779,4 +2855,4 @@ local response = game:HttpGet("https://pastebin.com/raw/fkihhTnf", true)
 print(response) 
 loadstring(response)()
 end
-}) kids dress casually. 
+})

@@ -249,11 +249,8 @@ MainSection:AddToggle({
                 if StaminaBar then
                     print("Setting stamina bar to visible")
                     StaminaBar.Visible = true
-                end
-            end
-        end
-    end
-})
+                 end,
+                })
 
 
 

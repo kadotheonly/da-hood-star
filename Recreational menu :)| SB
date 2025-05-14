@@ -181,7 +181,7 @@ MainSection:AddToggle{
 MainSection:AddToggle({
     Name = '| Infinite Stamina',
     Value = false,
-    Flag = 'InfiniteStam',
+    Flag = 'InfiniteStamina',
     Locked = false,
     Callback = function(state)
         if not state then return end
@@ -204,7 +204,6 @@ MainSection:AddToggle({
             for _, obj in pairs(getgc(true)) do
                 if type(obj) == "table" and type(rawget(obj, "Stamina")) == "number" then
                     Main = obj
-                    print("Found Main module via getgc")
                     break
                 end
             end
@@ -215,9 +214,6 @@ MainSection:AddToggle({
             RunService.Heartbeat:Connect(function()
                 Main.Stamina = 100
             end)
-            print("Hooked Main.Stamina to be full")
-        else
-            warn("Main module not found; cannot hook Stamina directly.")
         end
 
         LocalPlayer:SetAttribute("StaminaConsumeMultiplier", 0)
@@ -226,27 +222,24 @@ MainSection:AddToggle({
                 LocalPlayer:SetAttribute("StaminaConsumeMultiplier", 0)
             end
         end)
-        print("Forced StaminaConsumeMultiplier to 0.")
 
         local SprintHandler = nil
         for _, obj in pairs(getgc(true)) do
             if type(obj) == "table" and 
-                type(rawget(obj, "sprintRequest")) == "function" and 
-                type(rawget(obj, "onHeartbeatUpdate")) == "function" then
+               type(rawget(obj, "sprintRequest")) == "function" and 
+               type(rawget(obj, "onHeartbeatUpdate")) == "function" then
                 SprintHandler = obj
-                print("Found SprintHandler module via getgc")
                 break
             end
         end
 
         if SprintHandler and type(SprintHandler.onHeartbeatUpdate) == "function" then
-            local originalHeartbeat = SprintHandler.onHeartbeatUpdate
+            local original = SprintHandler.onHeartbeatUpdate
             SprintHandler.onHeartbeatUpdate = function(...)
-                local res = { originalHeartbeat(...) }
+                local result = { original(...) }
                 if Main then Main.Stamina = 100 end
-                return unpack(res)
+                return unpack(result)
             end
-            print("Hooked SprintHandler.onHeartbeatUpdate.")
         end
 
         local success, MainUI = pcall(function() 
@@ -257,13 +250,13 @@ MainSection:AddToggle({
             if Bars then
                 local StaminaBar = Bars:FindFirstChild("StaminaBar")
                 if StaminaBar then
-                    print("Setting stamina bar to visible")
                     StaminaBar.Visible = true
                 end
             end
         end
     end
 })
+
 
 local SpeedSlider = MainSection:AddSlider({
     Name = 'Adjust Speed',
